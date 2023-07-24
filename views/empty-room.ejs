@@ -1,0 +1,94 @@
+<%- include('partials/header.ejs') %>
+<%- include('partials/navbar.ejs') %>
+
+<!-- This file and route are called EMPTY ROOM but it's only technically empty for the first user. After more users join it'll change dynamically with Javascript -->
+<div class="gradient-background">
+    <h1 class="room-title"> ROOM CODE </h1>
+    <!-- TODO: Ask for which underline. 1 vote for "Controller" -->
+    <h1 id = "roomNumber" class="room-number"> <%= roomNumber %> </h1>
+    <div class="background-box">
+        <h4 style="text-decoration: underline; color: #b1b1b1;"> MEMBERS </h4>
+
+        <body onload = "sendMessage()">
+            <div id="toGen"></div>
+            <br>
+            <!-- TODO: Ensure the "Host" of the room (the first user) can only click Generate -->
+            <button id="newList"> Generate List </button>
+            <!-- TODO: Use proper CSS styling here instead of BRs -->
+            <br>
+            <!-- TODO: Make it so this copys something to your clipboard and then pops up a confirmation for the user that it did. -->
+            <button onclick = "showSuccess();copyFunction()"> Copy Room Link </button>
+            <br>
+            <!-- TODO: Make this actually do something -->
+            <button style="background-color: #C75858"> Leave Room </button>
+    </div>
+        <script>
+            // Setup our Socket connections
+            const socket = io('<%= url %>');
+            socket.on('connection');
+
+            // Fetches data from Cookies and send it to the back-end
+            const sendMessage = () => {
+                let steamID = Cookies.get('steamID');
+                let username = Cookies.get('username');
+                let avatar = Cookies.get('avatar');
+                let roomNumber = Cookies.get('roomNumber');
+                socket.emit('message', {steamID: steamID, username: username, avatar: avatar, roomNumber: roomNumber});
+            }
+            
+        socket.on('otherMsg', (data) => {
+            console.log(data);
+                
+        // Setup the image div with the first user that joins
+        let divAppend = document.getElementById('toGen');
+        let current = `<img src = "${data[0][2]}"">`;
+        divAppend.innerHTML = current;
+        
+        // Appends other users that join to the image div
+        for (let i = 1; i < data.length; i++) {
+            let HTML = `<img src = "${data[i][2]}"">`;
+            current += HTML;
+        }
+        divAppend.innerHTML = current;
+    });
+
+    // Button used to dynamically reload page for all members
+    let button = document.getElementById('newList');
+    button.addEventListener('click', function() {
+        let steamID = Cookies.get('steamID');
+        let username = Cookies.get('username');
+        let avatar = Cookies.get('avatar');
+        let roomNumber = Cookies.get('roomNumber');
+        socket.emit('newList', {steamID: steamID, username: username, avatar: avatar, roomNumber: roomNumber});
+    });
+
+    // redirects to list page
+    socket.on('navigate', function() {
+        window.location.href = "/list";
+    });
+
+        function copyFunction(){
+        let copyRoomNum = document.getElementById('roomNumber');
+        var selection = window.getSelection();
+        var range = document.createRange();
+
+        range.selectNodeContents(copyRoomNum);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        document.execCommand('copy');
+
+        
+    }
+
+    function showSuccess(){
+            jSuites.notification({
+                name: 'Copied to Clipboard',
+                // message: 'successs',
+            })
+    }
+    
+
+
+</script>
+</div>

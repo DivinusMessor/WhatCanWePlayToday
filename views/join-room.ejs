@@ -1,0 +1,20 @@
+<%- include('partials/header.ejs') %> 
+<%- include('partials/navbarBack.ejs', {linkToPage: `/room-choice`}) %>
+
+<div id="form">
+<form name="join" method="post" action="/join-room" onsubmit="return check()">
+    <br>
+    <input type="text" id="roomnum" name="roomnum">
+    <br>
+    <button type="submit">JOIN ROOM</button>
+</form>
+</div>
+
+<script> 
+    function check(){
+        var roomNumber = document.forms["join"]["roomnum"].value;
+        if (!'<%= existingRooms %>'.includes(roomNumber)) {
+            alert("Room number doesn't exist");
+        }
+    }
+</script>

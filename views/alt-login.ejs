@@ -1,0 +1,21 @@
+<%- include('partials/header.ejs') %>
+<%- include('partials/navbarBack.ejs', {linkToPage: `/`}) %>
+
+<div class="gradient-background">
+    <div class="background-box">
+        <h1>
+            ALT LOGIN PAGE
+        </h1>
+        <br>
+        <p> Enter your Steam User ID or ID Code Here </p>
+        <!-- TODO: Have a guide on how to find it. -->
+        <!-- TODO: Have some disclaimer and a link to other pages on relevant information -->
+        <br>
+        <form method="post" action="/alt-login">
+            <br>
+            <input type="text" id="userId" name="userId">
+            <br>
+            <button type="submit">CREATE/JOIN ROOM</button>
+        </form>
+    </div>
+</div>

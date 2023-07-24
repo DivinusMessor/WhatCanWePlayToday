@@ -1,0 +1,113 @@
+<%- include('partials/header.ejs') %> 
+<%- include('partials/navbar.ejs') %>
+
+<button id= "leave" style="background-color: red;">LEAVE ROOM</button>
+<body onload="sendMessage()">
+    <div class="gradient-background">
+        <div id="toGrab"></div>
+        <hr />
+        <div id="recGames"></div>
+        <!-- TODO: Put Room Members to the side of games -->
+        <!-- <div id="roomMembers">
+            <h6> MEMBERS </h6>
+        </div> -->
+    </div>
+</body>
+
+<script>
+  const socket = io("<%= url %>");
+  socket.on("connection");
+
+  const sendMessage = () => {
+    let steamID = Cookies.get("steamID");
+    let username = Cookies.get("username");
+    let avatar = Cookies.get("avatar");
+    let roomNumber = Cookies.get("roomNumber");
+
+    socket.emit("generate", {
+      steamID: steamID,
+      username: username,
+      avatar: avatar,
+      roomNumber: roomNumber,
+    });
+
+    socket.on("finalList", (data) => {
+      let roomMembers = data.roomMembers;
+      let sharedGameNames = data.games;
+      let ownedByWho = data.owners;
+      let gameLinks = data.links;
+      let gameImages = data.images;
+
+    //   console.log(roomMembers);
+    //   console.log(`Owned By Front-end: ${ownedByWho[0]}`);
+        console.log(ownedByWho);
+
+      function invertOwners(someArr) {
+        let temp = [];
+        for (let i = 0; i < roomMembers.length; i++) {
+          temp.push(i);
+        }
+        return filterOut(temp, someArr);
+      }
+
+      function convertToUser(someArr) {
+        let temp = ``;
+        for (let i = 0; i < someArr.length; i++) {
+          temp += `<img class="userIconInList" src="${roomMembers[someArr[i]][2]}" alt="Icon for ${roomMembers[someArr[i]][1]}">`;
+        }
+        return temp;
+      }
+
+      function filterOut(arr1, arr2) {
+        const result = arr1.filter((x) => arr2.indexOf(x) == -1);
+        return result;
+      }
+
+      let suggestDiv = document.getElementById("toGrab");
+      let recommendDiv = document.querySelector("#recGames");
+
+      // This IF is a workaround to ensure we don't get DUPLICATE games in our list.
+      if (
+        suggestDiv.childNodes.length === 0 &&
+        recommendDiv.childNodes.length === 0
+      ) {
+        for (let i = 0; i < sharedGameNames.length; i++) {
+            // IF the game is NOT owned by everyone, do the top case.
+          if (ownedByWho[i].length != roomMembers.length) {
+            let users = convertToUser(invertOwners(ownedByWho[i]));
+            recommendDiv.innerHTML += `
+                <div class="gameItem">
+                    <img class="gameImage" src="${gameImages[i]}" alt="Icon for ${sharedGameNames[i]}">
+                    <div class="seperator">
+                        <a class="gameTitle" href="${gameLinks[i]}"> ${sharedGameNames[i]} </a>
+                        <p class="gameTag"> Multiplayer </p>
+                    </div>
+                    <div class="roomMembers">
+                        <p class="gameMemberText"> NOT OWNED BY </>
+                        <div class="roomMemberImages">
+                            ${users}    
+                        </div>
+                    </div>
+                </div>
+            `;
+          } else { // Case for EVERYONE in the room owns the game
+            suggestDiv.innerHTML += `
+                <div class="gameItem">
+                    <img class="gameImage" src="${gameImages[i]}" alt="Icon for ${sharedGameNames[i]}">
+                    <div class="seperator">
+                        <a class="gameTitle" href="${gameLinks[i]}"> ${sharedGameNames[i]} </a>
+                        <p class="gameTag"> Multiplayer </p>
+                    </div>
+                </div>
+                `;
+          }
+        }
+      }
+    });
+  };
+
+  let leave = document.getElementById("leave");
+  leave.addEventListener('click', function(){
+    window.location.href = "/logout";
+  })
+</script>
