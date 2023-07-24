@@ -1,4 +1,5 @@
 # What Can We Play Today
+# Team Project: Yukio, Warren, Luis, Jennah
 
 What Can We Play Today is a web application that helps you and your friends find common games you all own on Steam. The application uses the Steam API to fetch user game data and then compares the games owned by each user in a room to generate a list of shared games.
 
