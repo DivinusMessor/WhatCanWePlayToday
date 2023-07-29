@@ -1,21 +1,41 @@
 <%- include('partials/header.ejs') %> 
 <%- include('partials/navbarBack.ejs', {linkToPage: `/`}) %> 
 
-<div id="toGrab">
-    <div class="gameItem">
-        <img class="gameImage" src="http://cdn.akamai.steamstatic.com/steam/apps/230410/header.jpg" alt="Icon for Warframe">
-        <div class="seperator">
-            <a class="gameTitle" href="https://store.steampowered.com/app/230410"> Warframe </a>
-            <p class="gameTag"> Multiplayer </p>
+<div id="listPageLayout">
+    <div id="toGrab">
+        <div class="gameItem">
+            <img class="gameImage" src="http://cdn.akamai.steamstatic.com/steam/apps/230410/header.jpg" alt="Icon for Warframe">
+            <div class="seperator">
+                <a class="gameTitle" href="https://store.steampowered.com/app/230410"> Warframe </a>
+                <div class="tagHolder">
+                    <p class="gameTag"> Free to Play </p>
+                    <p class="gameTag"> Action RPG </p>
+                    <p class="normalPrice"> Free </p>
+                </div>
+            </div>
+            <div class="roomMembers">
+                <p class="gameMemberText"> NOT OWNED BY </d>
+                <div class="roomMemberImages">
+                    <img class="userIconInList" src="https://avatars.steamstatic.com/de63198a51c76b3ed2dfd72e82d2ce4d666ce449_medium.jpg" alt="Icon for TidalWings">
+                </div>
+            </div>
         </div>
-        <div class="roomMembers">
-            <p class="gameMemberText"> NOT OWNED BY </>
-            <div class="roomMemberImages">
-                <img class="userIconInList" src="https://avatars.steamstatic.com/de63198a51c76b3ed2dfd72e82d2ce4d666ce449_medium.jpg" alt="Icon for TidalWings">
+        <div class="gameItem">
+            <img class="gameImage" src="http://cdn.akamai.steamstatic.com/steam/apps/6910/header.jpg" alt="Icon for Deus Ex: Game of the Year Edition">
+            <div class="seperator">
+                <a class="gameTitle" href="https://store.steampowered.com/app/6910"> Deus Ex: Game of the Year Edition </a>
+                <div class="tagHolder">
+                    <p class="gameTag"> Action RPG </p>
+                    <p class="normalPrice"> $4.99 </p>
+                    <p class="fullPrice"> $8.99 </p>
+                </div>
             </div>
         </div>
     </div>
-    
-    <%- include('partials/gameItem.ejs', {gameName: 'Deus Ex: Game of the Year Edition', gameImage: 'http://cdn.akamai.steamstatic.com/steam/apps/6910/header.jpg', gameLink: 'https://store.steampowered.com/app/6910'}) %>
+    <div id="tagsToRemove">
+        <button class="indivTag">
+            FPS
+            <span class="crossIcon"> &times; </span> 
+        </button>
+    </div>
 </div>
-

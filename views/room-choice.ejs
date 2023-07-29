@@ -6,17 +6,23 @@
     <div class="background-box">
         <h1> Enter a Room! </h1>
         <h6 id="isUser"></h6>
+        <div id="userAvatar"></div>
+        <p id="altPageHelp"> Great! Now that you're logged in you can: </p>
+        <ul>
+            <li> Create a Room: So that you and your friends can all join up to compare games. </li>
+            <li> Join a Room: Ask your friend for a Room Code to enter and join on their room to compare libraries. </li>
+        </ul>
     </div>
-        <div id="roomChoiceButtons">
-            <form action="/room-choice" method="post">
-                <input type="hidden" name="role" value="Host" />
-                <button type="submit" style="margin: 5px">Create Room</button>
-            </form>
-            <form action="/join-room" method="get">
-                <input type="hidden" name="role" value="Member" />
-                <button type="submit" style="margin: 5px">Join Room</button>
-            </form>
-        </div>
+    <div id="roomChoiceButtons">
+        <form action="/room-choice" method="post">
+            <input type="hidden" name="role" value="Host" />
+            <button type="submit" style="margin: 5px">Create Room</button>
+        </form>
+        <form action="/join-room" method="get">
+            <input type="hidden" name="role" value="Member" />
+            <button type="submit" style="margin: 5px">Join Room</button>
+        </form>
+    </div>
 </div>
     
 <script>
@@ -24,6 +30,10 @@
     let temp = Cookies.get('username');
     // TODO: Change the username to a different color
     username.innerHTML = `Welcome ${temp}!`;
+    let avatar = Cookies.get('avatar');
     // let userImage = document.querySelector('.background-box');
     // TODO: Append an image of the user icon here
+    // console.log();
+    let profilePic = document.querySelector("#userAvatar");
+    profilePic.innerHTML += `<img src="${avatar}" alt="Icon for ${username}" />`;
 </script>

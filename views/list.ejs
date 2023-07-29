@@ -2,6 +2,28 @@
 <%- include('partials/navbar.ejs') %>
 
 <button id= "leave" style="background-color: red;">LEAVE ROOM</button>
+<!-- <p> Filter By Category: </p> -->
+<div id = "menuDiv"></div>
+<div id = "menuDiv2"></div>
+
+<!-- <div id = "catSelected"> </div> -->
+<div id="tempTagButton"></div>
+<div id = "catSelected"> </div>
+<div id = "catSelected2"> </div>
+
+<button id = "freeBtn">FREE</button>
+<button id = "underTen">Under $10</button>
+<button id = "underFourty">Under $40</button>
+<!-- <div id = "button"><span id = "span" ></span></div> -->
+
+<button id = "button" class="indivTag">
+   <!-- &times;  -->
+</button>
+<button id = "button2" class="indivTag">
+  <!-- &times;  -->
+</button>
+<!-- <div id = "span"></div> -->
+
 <body onload="sendMessage()">
     <div class="gradient-background">
         <div id="toGrab"></div>
@@ -11,36 +33,195 @@
         <!-- <div id="roomMembers">
             <h6> MEMBERS </h6>
         </div> -->
+
     </div>
+
+
+
 </body>
+
 
 <script>
   const socket = io("<%= url %>");
   socket.on("connection");
 
+  // If Tags are found, provide them a way to "remove" them.
+  // For now, we'll just have a single button to clear and then reload the page.
+  if (sessionStorage.getItem('tagSelection')) {
+    let tempButton = document.createElement("button");
+    tempButton.innerHTML = "Clear Tags";
+
+    tempButton.addEventListener('click', () => {
+        // TODO: Ideally you'd want to just remove tagSelection or modify it based on the specific tag but for now this will work.  
+        sessionStorage.clear(); 
+        window.location.reload();
+    });
+
+    document.querySelector('#tempTagButton').appendChild(tempButton);
+  }
+
+// TODO: does everything need to be in sendMessage?
   const sendMessage = () => {
     let steamID = Cookies.get("steamID");
     let username = Cookies.get("username");
     let avatar = Cookies.get("avatar");
     let roomNumber = Cookies.get("roomNumber");
 
+    function filterBySelected(event){
+        const selected = event.target.value;
+        sessionStorage.setItem('tagSelection', selected);
+        window.location.reload();
+    }
+    
+    function filterBySelected2(event){
+        const selected = event.target.value;
+        sessionStorage.setItem('categorySelection', selected);
+        window.location.reload();
+        // console.log(`GENRE: ${selected}`);
+    }
+
+    // Triggers the generation of lists on 
     socket.emit("generate", {
       steamID: steamID,
       username: username,
       avatar: avatar,
       roomNumber: roomNumber,
+      tagSelection: sessionStorage.getItem('tagSelection'),
+      categorySelection: sessionStorage.getItem('categorySelection'),
+      priceSelection: sessionStorage.getItem('priceSelection')
     });
 
     socket.on("finalList", (data) => {
-      let roomMembers = data.roomMembers;
-      let sharedGameNames = data.games;
-      let ownedByWho = data.owners;
-      let gameLinks = data.links;
-      let gameImages = data.images;
+      const roomMembers = data.roomMembers;
+      const sharedGameNames = data.games;
+      const ownedByWho = data.owners;
+      const gameLinks = data.links;
+      const gameImages = data.images;
+      const gameTags = data.tags;
+      const gamePrices = data.prices;
+      const categories = data.categories;
+      const categoryArray = categories.map((str) => str.replace(/['"] + /g, ''));
+    //   const genres = data.genres;
 
-    //   console.log(roomMembers);
-    //   console.log(`Owned By Front-end: ${ownedByWho[0]}`);
-        console.log(ownedByWho);
+      function dropDownMenu1() {
+        const menu = document.createElement("select");
+        const title = document.createElement("option");
+        title.disabled = true;
+        title.selected = true;
+        title.textContent = "Select a Category";
+        menu.appendChild(title);
+        // TODO: Make a Select Tag option that won't trigger the tag refreshing feature of the function.
+        // const temp = document.createElement("option");
+        // menu.appendChild(temp);
+
+        for (let i = 0; i < categoryArray.length; i++){
+          const option = document.createElement("option");
+          option.value = categoryArray[i];
+          option.setAttribute('name', "option");
+          option.textContent = categoryArray[i];
+          menu.appendChild(option);
+        }
+
+        let menuDiv = document.getElementById("menuDiv");
+        menuDiv.appendChild(menu);
+
+        // TODO: Add a button to trigger this instead of "change"
+        menu.addEventListener("change", filterBySelected);
+      }
+
+      dropDownMenu1();
+      let catDiv = document.getElementById("catSelected");
+      let tagString = sessionStorage.getItem('tagSelection');
+      catDiv.appendChild(document.createTextNode(tagString));
+
+      const button = document.getElementById("button");
+
+      button.textContent = catDiv.textContent + "  \u00D7";
+      // button.className = "indivTag";
+      // span.className = "crossIcon";
+      // span.textContent = "             \u00D7";
+      button.addEventListener('click', () => {
+        // sessionStorage.setItem('tagSelection', );
+        // TODO: for now this clears the ENTIRE session storage, but we want to make sure we only remove specific tags in the future.
+        sessionStorage.clear();
+        window.location.reload();
+      });
+      // const buttonPlace = document.getElementById("button");
+      // buttonPlace.appendChild(button);
+
+      // const spanPlace = document.getElementById("span");
+      // spanPlace.appendChild(span);
+      /*
+      <button class="indivTag">
+        catDiv. <span class="crossIcon"> &times; </span> 
+      </button>
+      */
+
+      function dropDownMenu2() {
+        const menu = document.createElement("select");
+        const title = document.createElement("option");
+        const genreArray = ["Co-op", "Online Co-op","PvP","Online PvP","Cross-Platform Multiplayer",
+                            "Remote Play Together","Shared/Split Screen Co-op","Shared/Split Screen PvP",
+                            "LAN PvP","LAN Co-op"];
+        title.disabled = true;
+        title.selected = true;
+        title.textContent = "Select a Genre";
+        menu.appendChild(title);
+        // TODO: Make a Select Tag option that won't trigger the tag refreshing feature of the function.
+        // const temp = document.createElement("option");
+        // menu.appendChild(temp);
+
+        for (let i = 0; i < genreArray.length; i++){
+          const option = document.createElement("option");
+          option.value = genreArray[i];
+          option.setAttribute('name', "option");
+          option.textContent = genreArray[i];
+          menu.appendChild(option);
+        }
+
+        let menuDiv = document.getElementById("menuDiv2");
+        menuDiv2.appendChild(menu);
+
+        // TODO: Add a button to trigger this instead of "change"
+        menu.addEventListener("change", filterBySelected2);
+      }
+      dropDownMenu2();
+      let catDiv2 = document.getElementById("catSelected2");
+      let tagString2 = sessionStorage.getItem('categorySelection');
+      catDiv2.appendChild(document.createTextNode(tagString2));
+
+      const button2 = document.getElementById("button2");
+
+      button2.textContent = catDiv2.textContent + "  \u00D7";
+      // button.className = "indivTag";
+      // span.className = "crossIcon";
+      // span.textContent = "             \u00D7";
+      button2.addEventListener('click', () => {
+        // sessionStorage.setItem('tagSelection', );
+        // TODO: for now this clears the ENTIRE session storage, but we want to make sure we only remove specific tags in the future.
+        sessionStorage.clear();
+        window.location.reload();
+      });
+
+      //EVENT LISTENERS FOR PRICE FILTERS 
+      const freeButton = document.getElementById("freeBtn");
+      freeButton.addEventListener('click', () => {
+
+        sessionStorage.setItem('priceSelection', freeButton.textContent);
+        window.location.reload();
+      });
+
+      const underTen = document.getElementById("underTen");
+      underTen.addEventListener('click', () => {
+        sessionStorage.setItem('priceSelection', underTen.textContent);
+        window.location.reload();
+      });
+
+      const underFourty = document.getElementById("underFourty");
+      underFourty.addEventListener('click', () => {
+        sessionStorage.setItem('priceSelection', underFourty.textContent);
+        window.location.reload();
+      });
 
       function invertOwners(someArr) {
         let temp = [];
@@ -63,6 +244,30 @@
         return result;
       }
 
+      function buildTags(tagsStringForm) {
+        if (tagsStringForm != '') {
+            let temp = tagsStringForm.split(',');
+            let toReturn = ``;
+            for (let i = 0; i < 2; i++) {
+                toReturn += `<p class="gameTag"> ${temp[i]} </p>`;
+            }
+            return toReturn;
+        } else {
+            return '';
+        }
+      }
+
+      function buildPrices(gamesPrices) {
+        let toReturn = ``;
+        if (gamesPrices.length == 2) {
+            toReturn += `<p class="normalPrice"> ${gamesPrices[0]} </p>`
+            toReturn += `<p class="fullPrice"> ${gamesPrices[1]} </p>`;
+        } else {
+            toReturn += `<p class="normalPrice"> ${gamesPrices[0]} </p>`;
+        }
+        return toReturn;
+      }
+
       let suggestDiv = document.getElementById("toGrab");
       let recommendDiv = document.querySelector("#recGames");
 
@@ -73,14 +278,22 @@
       ) {
         for (let i = 0; i < sharedGameNames.length; i++) {
             // IF the game is NOT owned by everyone, do the top case.
+          let tempTag = buildTags(gameTags[i]);
+          let tempPrice = buildPrices(gamePrices[i]);
+
           if (ownedByWho[i].length != roomMembers.length) {
+
             let users = convertToUser(invertOwners(ownedByWho[i]));
+            // TODO: Use actual JS methods to build these items instead of hard coding strings
             recommendDiv.innerHTML += `
                 <div class="gameItem">
                     <img class="gameImage" src="${gameImages[i]}" alt="Icon for ${sharedGameNames[i]}">
                     <div class="seperator">
                         <a class="gameTitle" href="${gameLinks[i]}"> ${sharedGameNames[i]} </a>
-                        <p class="gameTag"> Multiplayer </p>
+                        <div class="tagHolder">
+                            ${tempTag}
+                            ${tempPrice}
+                        </div>
                     </div>
                     <div class="roomMembers">
                         <p class="gameMemberText"> NOT OWNED BY </>
@@ -96,18 +309,23 @@
                     <img class="gameImage" src="${gameImages[i]}" alt="Icon for ${sharedGameNames[i]}">
                     <div class="seperator">
                         <a class="gameTitle" href="${gameLinks[i]}"> ${sharedGameNames[i]} </a>
-                        <p class="gameTag"> Multiplayer </p>
+                        <div class="tagHolder">
+                            ${tempTag}
+                            ${tempPrice}
+                        </div>
                     </div>
                 </div>
                 `;
           }
         }
       }
+
     });
   };
 
   let leave = document.getElementById("leave");
-  leave.addEventListener('click', function(){
+  leave.addEventListener('click', function() {
+    sessionStorage.clear();
     window.location.href = "/logout";
   })
 </script>

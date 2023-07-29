@@ -1,28 +1,44 @@
+/* PRESENT ON ALL PAGES */
+
 body {
     background-color: #17293E;
     text-align: center;
 }
 
-h1 {
+/* Set most of the text to white */
+h1, h2, a, p, label {
     color: white;
 }
 
-h2 {
-    color: white;
+/* A black "background box" for general pages. */
+.background-box {
+    margin-top: 6vh;
+    max-width: 45vw;
+    display: inline-flex;
+    flex-direction: column;
+    background-color: #171A21;
+    text-align: center;
+    padding: 12vh;
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 }
 
-a {
-    color:white;
+/* The light blue fade gradient on most pages. */
+.gradient-background {
+    background-image: linear-gradient(90deg,
+            rgba(0, 0, 0, 0) 10%,
+            #213e59 30%,
+            #213e59 80%,
+            rgba(0, 0, 0, 0) 90%);
+    /* For Desktop, probably wan't a diff one for mobile */
+    height: 90vh;
 }
 
+/* Specific Hover color for links */
 a:hover {
     color:#9FE544;
 }
 
-label {
-    color: white;
-}
-
+/* Generic Green Button by Default */
 button {
     font-family: 'Kanit', sans-serif;
     background-color: #6F9F31;
@@ -34,6 +50,7 @@ button {
     transition: all .3s ease-in-out;
 }
 
+/* Add a hover effect to all buttons, regardless of color/purpose. */
 button:hover {
     /* the 3D transform here is key to the effect */
     transform: translate3d(0px, -1px, 0px);
@@ -41,44 +58,54 @@ button:hover {
     box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 }
 
+/* ===================== NAV BAR ===================== */
+
+/* Ensures our navbar has proper color & sizing for each page */
+nav {
+    background-color: #0B0E13;
+    max-height: 10vh;
+    display: flex;
+    justify-content: center;
+}
+
+/* Keeps logo properly sized */
+#logo {
+    max-height: 8vh;
+    margin-top: 1.5vh;
+    margin-bottom: 1.5vh;
+}
+
+/* Also keeps our back button the right size */
+#backButton {
+    max-height: 5vh;
+}
+
+/* Alignment for the logo and back arrow when we have it displayed */
+#logoItem {
+    flex: 1;
+}
+
+#backItem {
+    align-self: center;
+}
+
+/* ===================== INDEX ===================== */
+
+/* Container for all the central buttons on the home page */
 #main-page-buttons {
     margin-top: 2rem;
 }
 
-.background-box {
-    margin-top: 10vh;
-    max-width: 50vw;
-    display: inline-flex;
-    flex-direction: column;   
-    background-color: #171A21;
-    text-align: center;
-    padding: 20vh;
-}
+/* ===================== LIST ===================== */
 
-/*  */
+/* The parent layout for most games being added to the list page */
 #toGrab, #recGames {
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-.gameTitle {
-    color: white;
-    font-family: 'Kanit', sans-serif;
-    font-size: larger;
-}
-
-.gameTag {
-    background-color: #243C4F;
-    font-family: 'Kanit', sans-serif;
-    margin-top: 3.5vh;
-    letter-spacing: 0.75px;
-    color: #82D3FF;
-    align-self: flex-start;
-    border-radius: 6px;
-    padding: 8px;
-}
-
+/* A parent organizer for the tags, title, and pricing */
 .seperator {
     display: flex;
     flex-direction: column;
@@ -86,6 +113,12 @@ button:hover {
     margin-top: 1rem;
 }
 
+/* Ensures the multiple tags are in a row pattern */
+.tagHolder {
+    display: flex;
+}
+
+/* The entire game card for each individual game */
 .gameItem {
     margin: 1.5rem;
     display: flex;
@@ -103,14 +136,76 @@ button:hover {
     box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 }
 
+/* The Text title for each individual game */
+.gameTitle {
+    color: white;
+    font-family: 'Kanit', sans-serif;
+    font-size: larger;
+    align-self: flex-start;
+}
+
+/* The Individual Tags for each game */
+.gameTag {
+    background-color: #243C4F;
+    font-family: 'Kanit', sans-serif;
+    margin-top: 3.5vh;
+    letter-spacing: 0.75px;
+    color: #82D3FF;
+    align-self: flex-start;
+    border-radius: 6px;
+    padding: 8px;
+    margin-right: 0.5vw;
+}
+
+/* The price for a standard game, no strike through */
+.normalPrice {
+    color: #B3EE11;
+    font-family: 'Kanit', sans-serif;
+    font-size: larger;
+    align-self: center;
+    margin-bottom: 0;
+    margin-top: 2vh;
+    margin-right: 0.5vw;
+}
+
+/* The full MSRP price of a game if it's on sale */
+.fullPrice {
+    color: #B1B1B1;
+    text-decoration: line-through;
+    font-family: 'Kanit', sans-serif;
+    font-size: large;
+    align-self: center;
+    margin-bottom: 0;
+    margin-top: 2vh;
+    margin-right: 0.5vw;
+}
+
+/* Ensuring the height of the image will stay at a reasonable size */
 .gameImage {
     max-height: 15vh;
 }
 
+/* the "Not Owned By" text on each card for recommended games */
 .gameMemberText {
     font-family: 'Kanit', sans-serif;
     color: #B1B1B1;
     text-decoration: underline;
+}
+
+/* ===================== ? ===================== */
+
+#altPageHelp {
+    color: #A5A5A5;
+    font-size: 1.1rem;
+}
+
+#altPageGuide {
+    color: #A5A5A5;
+    font-size: 1.1rem;
+}
+
+ul, li {
+    color: #A5A5A5;
 }
 
 .roomMembers {
@@ -121,51 +216,18 @@ button:hover {
     margin-right: 1vw;
 }
 
-.roomMemberImages {
-
-}
-
-#backButton {
-    max-height: 5vh;
-}
-
 .userIconInList {
     max-height: 7vh;
     align-self: center;
 }
 
-.gradient-background {
-    background-image: linear-gradient(90deg,
-        rgba(0,0,0,0) 10%,
-        #213e59 30%,
-        #213e59 80%,
-        rgba(0,0,0,0) 90%);
-}
-
-/* TODO: Figure out SVG Logo */
-/* #logo {
-    width: auto;
-    height: 8vh;
-} */
-#logo {
-    max-height: 8vh;
-    margin-top: 1.5vh;
-    margin-bottom: 1.5vh;
-}
-
-nav {
-    background-color: #0B0E13;
-    max-height: 10vh;
-    display: flex;
-    justify-content: center;
-}
-
-#logoItem {
-    flex: 1;
-}
-
-#backItem {
-    align-self: center;
+#userId {
+    font-family: 'Kanit', sans-serif;
+    width: 20vw;
+    height: 6vh;
+    margin-bottom: 4vh;
+    font-size: 36px;
+    text-align: center;
 }
 
 #roomChoiceButtons {
@@ -175,4 +237,53 @@ nav {
 
 #isUser {
     color: white;
+}
+
+.room-title {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#roomNumber {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 4rem;
+}
+
+.roomSeperator {
+    max-height: 1vh;
+}
+
+#roomElements {
+    padding-top: 4vh;
+}
+
+.roomButtonText {
+    font-size: 1.25rem;
+}
+
+#copyRoomLink {
+
+}
+
+#newList {
+    font-size: 1.5rem;
+}
+
+/* ===================== "Removable" Tags on List ===================== */
+
+.indivTag {
+    border: 2px white solid;
+    border-radius: 8px;
+    background-color: transparent;
+    padding: 0.1vh 0.5vw;
+    font-size: 1.25rem;
+}
+
+.crossIcon {
+    padding-left: 1vw;
+    height: 3vh;
+    font-size: 1.5rem;
+}
+
+#listPageLayout {
+    
 }

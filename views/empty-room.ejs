@@ -3,41 +3,45 @@
 
 <!-- This file and route are called EMPTY ROOM but it's only technically empty for the first user. After more users join it'll change dynamically with Javascript -->
 <div class="gradient-background">
-    <h1 class="room-title"> ROOM CODE </h1>
-    <!-- TODO: Ask for which underline. 1 vote for "Controller" -->
-    <h1 id = "roomNumber" class="room-number"> <%= roomNumber %> </h1>
-    <div class="background-box">
+    <div id="roomElements">
+        <h1 class="room-title"> ROOM CODE </h1>
+        <img class="roomSeperator" src="/img/controllerSeparator.png" alt="Seperator for Page">
+        <h1 id = "roomNumber" class="room-number"> <%= roomNumber %> </h1>
+    </div>
+    <div class="background-box" style="margin-top: 3vh;">
         <h4 style="text-decoration: underline; color: #b1b1b1;"> MEMBERS </h4>
 
         <body onload = "sendMessage()">
             <div id="toGen"></div>
             <br>
             <!-- TODO: Ensure the "Host" of the room (the first user) can only click Generate -->
-            <button id="newList"> Generate List </button>
+            <button id="newList" class="roomButtonText"> GENERATE LIST </button>
             <!-- TODO: Use proper CSS styling here instead of BRs -->
             <br>
-            <!-- TODO: Make it so this copys something to your clipboard and then pops up a confirmation for the user that it did. -->
-            <button onclick = "showSuccess();copyFunction()"> Copy Room Link </button>
+            <button id="copyRoomLink" class="roomButtonText" onclick="showSuccess(); copyFunction()"> COPY ROOM LINK </button>
             <br>
             <!-- TODO: Make this actually do something -->
-            <button style="background-color: #C75858"> Leave Room </button>
+            <button class="roomButtonText" style="background-color: #C75858"> LEAVE ROOM </button>
     </div>
-        <script>
-            // Setup our Socket connections
-            const socket = io('<%= url %>');
-            socket.on('connection');
+</div>
+<script>
+    // Setup our Socket connections
+    const socket = io('<%= url %>');
+    socket.on('connection');
 
-            // Fetches data from Cookies and send it to the back-end
-            const sendMessage = () => {
-                let steamID = Cookies.get('steamID');
-                let username = Cookies.get('username');
-                let avatar = Cookies.get('avatar');
-                let roomNumber = Cookies.get('roomNumber');
-                socket.emit('message', {steamID: steamID, username: username, avatar: avatar, roomNumber: roomNumber});
-            }
-            
-        socket.on('otherMsg', (data) => {
-            console.log(data);
+    // Fetches data from Cookies and send it to the back-end. Runs on page load.
+    const sendMessage = () => {
+        let steamID = Cookies.get('steamID');
+        let username = Cookies.get('username');
+        let avatar = Cookies.get('avatar');
+        let roomNumber = Cookies.get('roomNumber');
+        socket.emit('message', {steamID: steamID, username: username, avatar: avatar, roomNumber: roomNumber});
+    }
+     
+    // Receives data from Back-end when other users join.
+    socket.on('otherMsg', (data) => {
+        // DEBUG: Check output
+        // console.log(data);
                 
         // Setup the image div with the first user that joins
         let divAppend = document.getElementById('toGen');
@@ -67,7 +71,7 @@
         window.location.href = "/list";
     });
 
-        function copyFunction(){
+    function copyFunction() {
         let copyRoomNum = document.getElementById('roomNumber');
         var selection = window.getSelection();
         var range = document.createRange();
@@ -77,18 +81,12 @@
         selection.addRange(range);
         
         document.execCommand('copy');
-
-        
     }
 
-    function showSuccess(){
-            jSuites.notification({
-                name: 'Copied to Clipboard',
-                // message: 'successs',
-            })
+    function showSuccess() {
+        jSuites.notification({
+            name: 'Copied to Clipboard',
+            // message: 'successs',
+        });
     }
-    
-
-
 </script>
-</div>
