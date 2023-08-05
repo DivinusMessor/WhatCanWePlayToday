@@ -57,6 +57,7 @@ let existingRooms = [];
 function Room(roomNumber, roomMembers) {
   this.roomNumber = roomNumber;
   this.roomMembers = roomMembers;
+  this.roomSize = 0;
 }
 let socketRooms = [];
 
@@ -68,6 +69,58 @@ async function fetchTags(gameID) {
   const result = await response.json();
   const tags = Object.keys(result.tags).join(",");
   return tags;
+}
+
+/**
+ * deleteRoom will only be run on situations where the user is the LAST user in a room. It will go and delete the entire element from the array.
+ * @param {Number} roomNumber the number of the room to be deleted 
+ */
+function deleteRoom(roomNumber) {
+    let indexOfRoom = -1;
+
+    for (let i = 0; i < socketRooms.length; i++) {
+        const curRoomNum = socketRooms[i].roomNumber;
+        if (curRoomNum == roomNumber) {
+            indexOfRoom = i;
+        }
+    }
+
+    // Ensuring we ACTUALLY only delete the room if it's found
+    if (indexOfRoom != -1) {
+        socketRooms.splice(indexOfRoom, 1);
+    }
+}
+
+/**
+ * 
+ * @param {*} roomNumber 
+ * @param {*} userID 
+ */
+function deleteUserFromRoom(roomNumber, userID) {
+    let indexOfRoom = -1;
+
+    for (let i = 0; i < socketRooms.length; i++) {
+        const curRoomNum = socketRooms[i].roomNumber;
+        if (curRoomNum == roomNumber) {
+            indexOfRoom = i;
+        }
+    }
+
+    // Ensuring we ACTUALLY only delete the room if it's found
+    if (indexOfRoom != -1) {
+        let indexOfUser = -1;
+        
+        let curRoomMembers = socketRooms[indexOfRoom].roomMembers;
+        for (let j = 0; j < curRoomMembers.length; j++) {
+            if (curRoomMembers[j][0] == userID) {
+                indexOfUser = j;
+            }
+        }
+
+        if (indexOfUser != -1) {
+            socketRooms[indexOfRoom].roomMembers.splice(indexOfUser, 1);
+        }
+    }
 }
 
 // TODO: Make this dynamically generate a YYYY-MM-DD format
@@ -95,8 +148,8 @@ async function fetchGenresPrices(gameID) {
     if (typeof priceOverview != `undefined`) {
       final_price = priceOverview.final_formatted; // final
       initial_price = priceOverview.initial_formatted; // initial
-      final_price = parseFloat(final_price.replace("$",""));
-      initial_price = parseFloat(initial_price.replace("$",""));
+      final_price = parseFloat(final_price.replace("$", ""));
+      initial_price = parseFloat(initial_price.replace("$", ""));
     }
     // Getting the "categories" of the game
     let categories = result2[`${gameID}`].data.categories;
@@ -127,7 +180,6 @@ async function checkGames(steamID) {
   // First we'll fetch the list of owned games per the users steamID.
   // An API function that will set gameCount and gameInfo to the total count
   // of a users games and aan array of their games respectively.
-  console.log("Gathering data...");
   await steamWrapper
     .getOwnedGames(steamID, null, true)
     .then((result) => {
@@ -135,7 +187,6 @@ async function checkGames(steamID) {
       gameInfo = result.data.games;
     })
     .catch(console.error);
-  console.log("Finished");
 
   // We iterate through the users' games using the data from the above function
   for (let curGame = 0; curGame < gameCount; curGame++) {
@@ -143,8 +194,6 @@ async function checkGames(steamID) {
     const gamePic = gameInfo[curGame].url_store_header;
     const gameURL = gameInfo[curGame].url_store;
     const gameID = gameInfo[curGame].appID;
-
-    console.log(`GAME: ${gameName}`);
 
     // Variables that are et later with API fetches
     let tags = "";
@@ -164,7 +213,6 @@ async function checkGames(steamID) {
 
     // if the game is located we check if the user has the game in their database
     if (localGame) {
-      console.log(`Game-${gameName} is inside database...`);
       // IFF >= 3 days old then re-query
       if (computeDateDiff(localGame.age)) {
         // TODO:
@@ -220,19 +268,19 @@ async function checkGames(steamID) {
  * Given tags to parse and tags to ignore, builds and maintains an array of tags to return.
  * @param {String} inputTags are the incoming tags (in this format `FPS,Action,Strategy` etc.)
  * @param {Array} existingTags are tags that SHOULDN'T BE returned because they were previously added. In a array format.
- * @returns {Array} toReturn curated tag array.  
+ * @returns {Array} toReturn curated tag array.
  */
 function maintainTags(inputTags, existingTags) {
-    const splitTags = inputTags.split(',');
-    let toReturn = existingTags;
+  const splitTags = inputTags.split(",");
+  let toReturn = existingTags;
 
-    splitTags.forEach(tag => {
-        if (!toReturn.includes(tag)) {
-            toReturn.push(tag);
-        }
-    });
+  splitTags.forEach((tag) => {
+    if (!toReturn.includes(tag)) {
+      toReturn.push(tag);
+    }
+  });
 
-    return toReturn;
+  return toReturn;
 }
 
 // ================== ROUTES ==================
@@ -263,8 +311,6 @@ app.get("/auth/steam/authenticate", async (req, res) => {
     res.cookie("steamID", user["steamid"]);
     res.cookie("username", user["username"]);
     res.cookie("avatar", user["avatar"]["medium"]);
-
-    let steamid = parseInt(user["steamid"]);
 
     // DEBUG: Checking who is logged in via Backend
     console.log(`${user["username"]} has logged in!`);
@@ -396,9 +442,11 @@ io.on("connection", (socket) => {
       socketRooms.push(temp);
     }
 
+
     // Re-find the room again and send the output of users to the front-end
     potentialRoom = socketRooms.find((x) => x.roomNumber === roomNumber);
     roomMembers = potentialRoom.roomMembers;
+
 
     io.sockets.in("room-" + roomNumber).emit("otherMsg", roomMembers);
   });
@@ -415,11 +463,16 @@ io.on("connection", (socket) => {
     const roomMembers = socketRooms.find(
       (x) => x.roomNumber === roomNumber
     ).roomMembers;
+
+    const roomSize = socketRooms.find(
+      (x) => x.roomNumber === roomNumber
+    ).roomSize;
     // socket.join("room-" + roomNumber);
+    console.log("ROOM SIZE" + roomSize);
+    // console.log("ROOM SIZE" + roomSize);
     // Query sets up ONLY multiplayer games & ones for the specific user.
     let query = `SELECT * FROM Games NATURAL JOIN Users WHERE userID = ? AND is_multiplayer = 1`;
     // Retrieve the users selected tags & reshape the SQL based on it.
-    // const tagSelection = `FPS`; // DEBUG tags
     const tagSelection = data.tagSelection;
     const tagsPresent = !(tagSelection === null || tagSelection.trim() === "");
     if (tagsPresent) {
@@ -434,24 +487,18 @@ io.on("connection", (socket) => {
       query += ` AND genre LIKE '%${categorySelection}%'`;
     }
 
-    // TODO: Price filtering has to be numeric instead of just inserting a variable. So modify this to support ranges of prices.
     const priceSelection = data.priceSelection;
-    const pricePresent = !(
-      priceSelection === null || priceSelection.trim() === ""
-    );
-    if (pricePresent) {
-        // TODO: Depending on certain prices, do something.
-        if (priceSelection == `FREE`) {
-            query += ` AND price = 0`;
-        } else if (priceSelection == `Under $10`) {
-            query += ` AND price <= 10`;
-        } else if (priceSelection == `Under $40`) {
-            query += ` AND price <= 40`;
-        } else {
-            // TODO: Custom prices are processed here.
-        }
+    const minPriceSelection = data.minPriceSelection;
+    const maxPriceSelection = data.maxPriceSelection;
+    if (priceSelection == `FREE`) {
+      query += ` AND price = 0`;
+    } else if (priceSelection == `Under $10`) {
+      query += ` AND price <= 10`;
+    } else if (priceSelection == `Under $40`) {
+      query += ` AND price <= 40`;
+    } else if (!(minPriceSelection == "" && maxPriceSelection == "")) {
+      query += ` AND price >= ${minPriceSelection} AND price <= ${maxPriceSelection}`;
     }
-
     // Arrays to be sent to the front-end later.
     let sharedGameNames = [];
     let ownedByWho = [];
@@ -472,7 +519,7 @@ io.on("connection", (socket) => {
       const currentUsersGames = db.prepare(query).all(currentUserID);
 
       currentUsersGames.forEach((curGame) => {
-          // TODO: Would it be better to use a games ID here? Can a game have the same name as another?
+        // TODO: Would it be better to use a games ID here? Can a game have the same name as another?
         const indexOfGame = sharedGameNames.indexOf(curGame.name);
         if (indexOfGame != -1) {
           // It IS THERE so curGame append the SteamID to the "current owners"
@@ -484,11 +531,10 @@ io.on("connection", (socket) => {
           gameLinks.push(curGame.store_url);
           gameTags.push(curGame.tags);
           let prices = [];
-          const initial_price = curGame.initial_price; 
+          const initial_price = curGame.initial_price;
           const final_price = curGame.price;
           prices.push(final_price);
           if (initial_price != "" && initial_price != 0) {
-        //   if (initial_price != "" && initial_price != "Free") {
             prices.push(initial_price);
           }
           gamePrices.push(prices);
@@ -497,7 +543,7 @@ io.on("connection", (socket) => {
           temp.push(i);
           ownedByWho.push(temp);
           // Lets process the tags to send to the front end
-        // TODO: We should probably also remove the current (or previously) selected tags so they don't get queried again from the database.
+          // TODO: We should probably also remove the current (or previously) selected tags so they don't get queried again from the database.
           allPotentialTags = maintainTags(curGame.tags, allPotentialTags);
         }
       });
@@ -505,6 +551,7 @@ io.on("connection", (socket) => {
 
     // TODO: How to handle refreshes when a new user joins or leaves a room?
     // Finally emit the data to all room members INDIVIDUALLY so filtering options don't change the page for everyone.
+    
     io.to(socket.id).emit("finalList", {
       roomMembers: roomMembers,
       games: sharedGameNames,
@@ -525,6 +572,9 @@ app.get("/list", async (req, res) => {
 // DEBUG: For checking HTML elements on a safe page.
 app.get("/test", async (req, res) => {
   console.log(`Running Test.`);
+
+    console.log(socketRooms);
+
   res.render("test");
 });
 
@@ -535,6 +585,7 @@ app.get("/altTest", async (req, res) => {
   let gameInfo = [];
   let gameCount = 0;
   // Set this to whomever's account to pre-add their games to the database
+  let steamID = `76561198016716226`;
 
   // An API function that will set gameCount and gameInfo to the total count of a users games and an array of their games respectively.
   await steamWrapper
@@ -545,7 +596,7 @@ app.get("/altTest", async (req, res) => {
     })
     .catch(console.error);
 
-    // gameCount = ;
+  // gameCount = 600;
 
   // We iterate through the users' games using the data from the above function
   for (let curGame = 0; curGame < gameCount; curGame++) {
@@ -627,7 +678,24 @@ app.get("/altTest", async (req, res) => {
   res.render("altTest");
 });
 
+// Intended to be the FULL logout from Steam & the Room.
 app.get("/logout", (req, res) => {
+    const roomNumber = req.cookies.roomNumber;
+    const curUsersID = req.cookies.steamID;
+    let potentialRoom = socketRooms.find((x) => x.roomNumber === roomNumber);
+    
+    if (potentialRoom) { // our room was found so delete the user
+        if (potentialRoom.roomMembers.length == 1) { // user is the sole person in the room
+            deleteRoom(roomNumber);
+            // otherwise they're in a populated room and need to be specifically removed
+        } else { 
+            deleteUserFromRoom(roomNumber, curUsersID);
+        }
+    } else {
+        console.error(`ERROR: User was in a room that doesn't exist anymore?`);
+    }
+
+    // After removing them from a room, we'll clear their cookies.
   res.clearCookie("steamID");
   res.clearCookie("username");
   res.clearCookie("avatar");

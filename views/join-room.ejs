@@ -1,10 +1,21 @@
 <%- include('partials/header.ejs') %> 
 <%- include('partials/navbarBack.ejs', {linkToPage: `/room-choice`}) %>
 
-<div id="form">
-<form name="join" method="post" action="/join-room" onsubmit="return check()">
+<div>
+    <h1> Room Code </h1>
     <br>
-    <input type="text" id="roomnum" name="roomnum">
+</div>
+
+<div id="form">
+<form name="join" method="post" action="/join-room" onsubmit="return check()" class="inputField">
+    <div class="inputWrapper">
+        <input type="text" maxlength="1" class="roomnum" id="roomnum1" oninput="moveFocus(1, 2)">
+        <input type="text" maxlength="1" class="roomnum" id="roomnum2" oninput="moveFocus(2, 3)">
+        <input type="text" maxlength="1" class="roomnum" id="roomnum3" oninput="moveFocus(3, 4)">
+        <input type="text" maxlength="1" class="roomnum" id="roomnum4" oninput="moveFocus(4, 5)">
+        <input type="text" maxlength="1" class="roomnum" id="roomnum5">
+    </div>
+    <input type="hidden" id="roomnum" name="roomnum">
     <br>
     <button type="submit">JOIN ROOM</button>
 </form>
@@ -12,9 +23,21 @@
 
 <script> 
     function check(){
-        var roomNumber = document.forms["join"]["roomnum"].value;
+        var roomNumber = document.getElementById("roomnum1").value + document.getElementById("roomnum2").value +
+                         document.getElementById("roomnum3").value + document.getElementById("roomnum4").value + 
+                         document.getElementById("roomnum5").value;
         if (!'<%= existingRooms %>'.includes(roomNumber)) {
             alert("Room number doesn't exist");
+            return false;
+        }
+        document.getElementById("roomnum").value = roomNumber;
+        return true;
+    }
+
+    
+    function moveFocus(currentBox, nextBox) {
+        if(document.getElementById("roomnum" + currentBox).value.length === 1) {
+            document.getElementById("roomnum" + nextBox).focus();
         }
     }
 </script>

@@ -1,45 +1,62 @@
 <%- include('partials/header.ejs') %> 
 <%- include('partials/navbar.ejs') %>
 
-<button id= "leave" style="background-color: red;">LEAVE ROOM</button>
-<!-- <p> Filter By Category: </p> -->
-<div id = "menuDiv"></div>
-<div id = "menuDiv2"></div>
-
-<!-- <div id = "catSelected"> </div> -->
-<div id="tempTagButton"></div>
-<div id = "catSelected"> </div>
-<div id = "catSelected2"> </div>
-
-<button id = "freeBtn">FREE</button>
-<button id = "underTen">Under $10</button>
-<button id = "underFourty">Under $40</button>
-<!-- <div id = "button"><span id = "span" ></span></div> -->
-
-<button id = "button" class="indivTag">
-   <!-- &times;  -->
-</button>
-<button id = "button2" class="indivTag">
-  <!-- &times;  -->
-</button>
-<!-- <div id = "span"></div> -->
-
 <body onload="sendMessage()">
-    <div class="gradient-background">
-        <div id="toGrab"></div>
-        <hr />
-        <div id="recGames"></div>
-        <!-- TODO: Put Room Members to the side of games -->
-        <!-- <div id="roomMembers">
-            <h6> MEMBERS </h6>
-        </div> -->
+    <div id="listPageLayout">
+        <div id="leftHandList">
+            <div>
+                <p class="leftHandLabels"> FILTER BY TAGS </p>
+                <div id ="menuDiv"></div>
+                <button id="button" class="indivTag"></button>
+                <div hidden id="tagPopupButton"> </div>
+            </div>
 
+            <div>
+                <p class="leftHandLabels"> FILTER BY CATEGORY </p>
+                <div id="genreDiv"></div>          
+                <button id="button2" class="indivTag"></button>      
+                <div hidden id="categoryPopupButton"> </div>
+            </div>
+
+            <div id="priceItems">
+                <p class="leftHandLabels"> FILTER BY PRICE </p>
+                <button id="freeBtn">FREE</button>
+                <button id="underTen">Under $10</button>
+                <button id="underFourty">Under $40</button>
+                <div id="customPriceElements">
+                    <input type="number" id="inputPrice" placeholder="Min $">
+                    <input type="number" id="inputPriceMax" placeholder="Max $">
+                    <button id="displayPriceRange" class="roomButtonText"> GO </button>
+                </div>
+                <button id="button3" class="indivTag"></button>      
+                <div hidden id="pricePopupButton"> </div>
+            </div>
+            <div id="clearAllFiltersButton"></div>
+        </div>
+
+        <div id="centerList">
+            <div class="gradient-background">
+                <h1 id="toGrabList"> SHARED GAMES </h1>
+                <div id="toGrab"></div>
+                <!-- TODO: Style this to be larger. -->
+                <img class="roomSeperator" src="/img/controllerSeparator.png" alt="Separator for Page">
+                <h1 id="recGamesList"> RECOMMENDED GAMES </h1>
+                <div id="recGames"></div>
+            </div>
+        </div>
+
+        <div id="rightHandList">
+            <div id="roomMembersList">
+                <p class="leftHandLabels"> MEMBERS </p>
+            </div>
+            <p id="roomCodeList"> ROOM CODE </p>
+            <!-- TODO: Placeholder Number -->
+            <p id = "displayRoomNum"> </p>
+            <!-- TODO: Button for copying Room Code -->
+            <button id= "leave" style="background-color: red;"> Logout & Leave Room </button>
+        </div>
     </div>
-
-
-
 </body>
-
 
 <script>
   const socket = io("<%= url %>");
@@ -47,17 +64,22 @@
 
   // If Tags are found, provide them a way to "remove" them.
   // For now, we'll just have a single button to clear and then reload the page.
-  if (sessionStorage.getItem('tagSelection')) {
+  if (sessionStorage.getItem('tagSelection') || sessionStorage.getItem('categorySelection') || sessionStorage.getItem('priceSelection') || sessionStorage.getItem('minPriceSelection') || sessionStorage.getItem('maxPriceSelection')) {
     let tempButton = document.createElement("button");
-    tempButton.innerHTML = "Clear Tags";
+    tempButton.setAttribute('id', 'filterClearButton');
+    tempButton.innerHTML = "Clear Filters";
 
     tempButton.addEventListener('click', () => {
         // TODO: Ideally you'd want to just remove tagSelection or modify it based on the specific tag but for now this will work.  
-        sessionStorage.clear(); 
+        sessionStorage.setItem('tagSelection', '');
+        sessionStorage.setItem('categorySelection', '');
+        sessionStorage.setItem('priceSelection', '');
+        sessionStorage.setItem('minPriceSelection', '');
+        sessionStorage.setItem('maxPriceSelection', '');
         window.location.reload();
     });
 
-    document.querySelector('#tempTagButton').appendChild(tempButton);
+    document.querySelector('#clearAllFiltersButton').appendChild(tempButton);
   }
 
 // TODO: does everything need to be in sendMessage?
@@ -67,17 +89,28 @@
     let avatar = Cookies.get("avatar");
     let roomNumber = Cookies.get("roomNumber");
 
-    function filterBySelected(event){
+
+    function filterBySelected(event) {
         const selected = event.target.value;
         sessionStorage.setItem('tagSelection', selected);
         window.location.reload();
     }
     
-    function filterBySelected2(event){
+    function filterBySelected2(event) {
         const selected = event.target.value;
         sessionStorage.setItem('categorySelection', selected);
         window.location.reload();
-        // console.log(`GENRE: ${selected}`);
+    }
+
+    function displayPriceRange() {
+        const userInputMin = document.getElementById("inputPrice").value;
+        const userInputMax = document.getElementById("inputPriceMax").value;
+        console.log("MIN INPUT:" + userInputMin);
+        console.log("MAX INPUT: " + userInputMax);
+
+        sessionStorage.setItem('minPriceSelection', userInputMin);
+        sessionStorage.setItem('maxPriceSelection', userInputMax);
+        window.location.reload();
     }
 
     // Triggers the generation of lists on 
@@ -88,7 +121,9 @@
       roomNumber: roomNumber,
       tagSelection: sessionStorage.getItem('tagSelection'),
       categorySelection: sessionStorage.getItem('categorySelection'),
-      priceSelection: sessionStorage.getItem('priceSelection')
+      priceSelection: sessionStorage.getItem('priceSelection'),
+      minPriceSelection: sessionStorage.getItem('minPriceSelection'),
+      maxPriceSelection: sessionStorage.getItem('maxPriceSelection')
     });
 
     socket.on("finalList", (data) => {
@@ -101,7 +136,20 @@
       const gamePrices = data.prices;
       const categories = data.categories;
       const categoryArray = categories.map((str) => str.replace(/['"] + /g, ''));
-    //   const genres = data.genres;
+
+    //   console.log(roomMembers);
+        const roomMembersToAppend = document.querySelector('#roomMembersList');
+        for (let i = 0; i < roomMembers.length; i++) {
+            const userAvatar = document.createElement('img');
+            userAvatar.src = roomMembers[i][2];
+            userAvatar.alt = `Icon for ${roomMembers[i][1]}`;
+            roomMembersToAppend.appendChild(userAvatar);
+        }
+
+        // console.log(roomMembers.length);
+    // Quickly set our room number to the page.
+      let currentRoomNum = document.getElementById('displayRoomNum');
+      currentRoomNum.textContent = roomNumber;
 
       function dropDownMenu1() {
         const menu = document.createElement("select");
@@ -110,9 +158,6 @@
         title.selected = true;
         title.textContent = "Select a Category";
         menu.appendChild(title);
-        // TODO: Make a Select Tag option that won't trigger the tag refreshing feature of the function.
-        // const temp = document.createElement("option");
-        // menu.appendChild(temp);
 
         for (let i = 0; i < categoryArray.length; i++){
           const option = document.createElement("option");
@@ -125,37 +170,25 @@
         let menuDiv = document.getElementById("menuDiv");
         menuDiv.appendChild(menu);
 
-        // TODO: Add a button to trigger this instead of "change"
         menu.addEventListener("change", filterBySelected);
       }
 
       dropDownMenu1();
-      let catDiv = document.getElementById("catSelected");
+      let catDiv = document.getElementById("tagPopupButton");
       let tagString = sessionStorage.getItem('tagSelection');
       catDiv.appendChild(document.createTextNode(tagString));
-
       const button = document.getElementById("button");
 
-      button.textContent = catDiv.textContent + "  \u00D7";
-      // button.className = "indivTag";
-      // span.className = "crossIcon";
-      // span.textContent = "             \u00D7";
+      if (tagString === "") {
+        button.style.display = "none";
+      } else {
+        button.textContent = catDiv.textContent + "  \u00D7";
+      }
+
       button.addEventListener('click', () => {
-        // sessionStorage.setItem('tagSelection', );
-        // TODO: for now this clears the ENTIRE session storage, but we want to make sure we only remove specific tags in the future.
-        sessionStorage.clear();
+        sessionStorage.setItem('tagSelection', '');
         window.location.reload();
       });
-      // const buttonPlace = document.getElementById("button");
-      // buttonPlace.appendChild(button);
-
-      // const spanPlace = document.getElementById("span");
-      // spanPlace.appendChild(span);
-      /*
-      <button class="indivTag">
-        catDiv. <span class="crossIcon"> &times; </span> 
-      </button>
-      */
 
       function dropDownMenu2() {
         const menu = document.createElement("select");
@@ -167,11 +200,8 @@
         title.selected = true;
         title.textContent = "Select a Genre";
         menu.appendChild(title);
-        // TODO: Make a Select Tag option that won't trigger the tag refreshing feature of the function.
-        // const temp = document.createElement("option");
-        // menu.appendChild(temp);
 
-        for (let i = 0; i < genreArray.length; i++){
+        for (let i = 0; i < genreArray.length; i++) {
           const option = document.createElement("option");
           option.value = genreArray[i];
           option.setAttribute('name', "option");
@@ -179,31 +209,32 @@
           menu.appendChild(option);
         }
 
-        let menuDiv = document.getElementById("menuDiv2");
-        menuDiv2.appendChild(menu);
+        let menuDiv = document.getElementById("genreDiv");
+        genreDiv.appendChild(menu);
 
-        // TODO: Add a button to trigger this instead of "change"
         menu.addEventListener("change", filterBySelected2);
       }
+
       dropDownMenu2();
-      let catDiv2 = document.getElementById("catSelected2");
+      
+      let catDiv2 = document.getElementById("categoryPopupButton");
       let tagString2 = sessionStorage.getItem('categorySelection');
       catDiv2.appendChild(document.createTextNode(tagString2));
 
       const button2 = document.getElementById("button2");
 
-      button2.textContent = catDiv2.textContent + "  \u00D7";
-      // button.className = "indivTag";
-      // span.className = "crossIcon";
-      // span.textContent = "             \u00D7";
+      if (tagString2 === "") {
+        button2.style.display = "none";
+      } else {
+        button2.textContent = catDiv2.textContent + "  \u00D7";
+      }
+      
       button2.addEventListener('click', () => {
-        // sessionStorage.setItem('tagSelection', );
-        // TODO: for now this clears the ENTIRE session storage, but we want to make sure we only remove specific tags in the future.
-        sessionStorage.clear();
+        sessionStorage.setItem('categorySelection', '');
         window.location.reload();
       });
 
-      //EVENT LISTENERS FOR PRICE FILTERS 
+      // EVENT LISTENERS FOR PRICE FILTERS 
       const freeButton = document.getElementById("freeBtn");
       freeButton.addEventListener('click', () => {
 
@@ -220,6 +251,68 @@
       const underFourty = document.getElementById("underFourty");
       underFourty.addEventListener('click', () => {
         sessionStorage.setItem('priceSelection', underFourty.textContent);
+        window.location.reload();
+      });
+
+    // Depending on our selected price we'll change the button styling to a different color.
+      if (sessionStorage.getItem('priceSelection') == "FREE") {
+        freeButton.style.color = "#B3EE11";
+        freeButton.style.borderColor = "#B3EE11";
+      }
+      else if (sessionStorage.getItem('priceSelection') == "Under $10") {
+        underTen.style.color = "#B3EE11";
+        underTen.style.borderColor = "#B3EE11";
+      }
+      else if (sessionStorage.getItem('priceSelection') == "Under $40") {
+        underFourty.style.color = "#B3EE11";
+        underFourty.style.borderColor = "#B3EE11";
+      }
+      else {
+        freeButton.style.color = "#FFFFFF";
+        freeButton.style.borderColor = "#FFFFFF";
+        underTen.style.color = "#FFFFFF";
+        underTen.style.borderColor = "#FFFFFF";
+        underFourty.style.color = "#FFFFFF";
+        underFourty.style.borderColor = "#FFFFFF";
+      }
+
+      // TODO: Dollar signs on text fields. 
+      const priceRange = document.getElementById("displayPriceRange");
+      priceRange.addEventListener('click', () => {
+        let userInputMin = document.getElementById("inputPrice").value;
+        let userInputMax = document.getElementById("inputPriceMax").value;
+
+        userInputMin = parseFloat(userInputMin).toFixed(2);
+        userInputMax = parseFloat(userInputMax).toFixed(2);
+
+        if (userInputMin > userInputMax || userInputMin == "" || userInputMax == "" || userInputMin < 0 || userInputMax < 0) {
+            jSuites.notification({
+                name: 'INVALID RANGE',
+            });
+        } else {
+            sessionStorage.setItem('minPriceSelection', userInputMin);
+            sessionStorage.setItem('maxPriceSelection', userInputMax);
+            window.location.reload();
+        }
+      });
+
+      //Display tag of user's input for price range
+      let priceDiv = document.getElementById("pricePopupButton");
+      let priceString1 = sessionStorage.getItem('minPriceSelection');
+      let priceString2 = sessionStorage.getItem('maxPriceSelection');
+
+
+      const button3 = document.getElementById("button3");
+
+      if (priceString1 === "" || priceString2 === "") {
+        button3.style.display = "none";
+      } else {
+        button3.textContent = "$" + priceString1 + " - $" + priceString2 + " \u00D7";
+      }
+      
+      button3.addEventListener('click', () => {
+        sessionStorage.setItem('minPriceSelection', '');
+        sessionStorage.setItem('maxPriceSelection', '');
         window.location.reload();
       });
 
@@ -259,11 +352,20 @@
 
       function buildPrices(gamesPrices) {
         let toReturn = ``;
-        if (gamesPrices.length == 2) {
-            toReturn += `<p class="normalPrice"> ${gamesPrices[0]} </p>`
-            toReturn += `<p class="fullPrice"> ${gamesPrices[1]} </p>`;
+        if (gamesPrices[1] == null) {
+            if (gamesPrices[0] == 0){
+                toReturn += `<p class="normalPrice"> Free </p>`;
+            } else {
+                toReturn += `<p class="normalPrice"> $${gamesPrices[0]} </p>`;
+            }
         } else {
-            toReturn += `<p class="normalPrice"> ${gamesPrices[0]} </p>`;
+            if (gamesPrices[0] == 0){
+                toReturn += `<p class="normalPrice"> Free </p>`;
+                toReturn += `<p class="fullPrice"> Free </p>`;
+            } else {
+                toReturn += `<p class="normalPrice"> $${gamesPrices[0]} </p>`;
+                toReturn += `<p class="fullPrice"> $${gamesPrices[1]} </p>`;
+            }
         }
         return toReturn;
       }

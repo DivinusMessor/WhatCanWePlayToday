@@ -29,6 +29,11 @@
     const socket = io('<%= url %>');
     socket.on('connection');
 
+    sessionStorage.setItem('tagSelection', '');
+    sessionStorage.setItem('categorySelection', '');
+    sessionStorage.setItem('priceSelection', '');
+    sessionStorage.setItem('minPriceSelection', '');
+    sessionStorage.setItem('maxPriceSelection', '');
     // Fetches data from Cookies and send it to the back-end. Runs on page load.
     const sendMessage = () => {
         let steamID = Cookies.get('steamID');
